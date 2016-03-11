@@ -6,6 +6,7 @@ namespace Secret_Files
 {
 	public class App : Application
 	{
+		public static AzureDataService DataDB = new AzureDataService ();
 		public App ()
 		{
 			// The root page of your application

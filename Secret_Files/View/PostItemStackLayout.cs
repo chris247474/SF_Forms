@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 namespace Secret_Files
 {
-	public class PostItem:StackLayout
+	public class PostItemStackLayout:StackLayout
 	{
 		Image postImage;
 		Label DatePosted;
 
 		Label TextBody, PostTitle;
 
-		public PostItem (string imgFile, string posttitle, string bodytext)
+		public PostItemStackLayout (string imgFile, string posttitle, string bodytext)
 		{
 			this.BackgroundColor = Color.White;
 			postImage = new Image{

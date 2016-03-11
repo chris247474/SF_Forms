@@ -1,7 +1,7 @@
 ﻿using System;
 using Xamarin.Forms;
 using System.Collections.Generic;
-//using Acr.UserDialogs;
+using System.Diagnostics;
 
 namespace Secret_Files
 {
@@ -10,22 +10,24 @@ namespace Secret_Files
 		static SearchBar searchBar;
 		static ScrollView ScrollFeed;
 
-		public static void RequestPostToFeed(PostItem post){
-			MessagingCenter.Send(typeof(CreatePostPage), Values.POSTREQUEST, post);
-		}
-		public static void SubscribeForPostRequests(List<PostItem> FeedList){
-			MessagingCenter.Subscribe<PostItem>(typeof(Feed), Values.POSTREQUEST, (args) =>{
-				try{
-					FeedList.Add (args as PostItem);
-				}catch(Exception e){
-					//UserDialogs.Instance.InfoToast ("Couldn't add post to feed", "Feed.SubscribeForPostRequests() :"+e.Message, 4000);
-				}
-			});
-		}
 		public static string BuildShoutText(string shoutScopeName){
 			return Values.SHOUTSTRING + shoutScopeName.ToLower () + Values.WONTKNOW;
 		}
-		public static StackLayout CreateScrollableFeedView(List<PostItem> PostsContent, string placeholder, string scopeName){
+		public static List<PostItemStackLayout> LoadFeedDataIntoFeedList(List<PostItem> PostData){
+			var PostDataArray = PostData.ToArray (); 
+			List<PostItemStackLayout> FeedList = new List<PostItemStackLayout> ();
+
+			if(PostData == null){
+				Debug.WriteLine ("LoadFeedDataIntoFeedList error: Azure data passed to parameter is null");
+			}else{
+				for(int c = 0;c < PostDataArray.Length;c++){
+					FeedList.Add (new PostItemStackLayout("postsample.png", PostDataArray[c].Title, PostDataArray[c].Body));
+				}
+				return FeedList;
+			}
+			return null;
+		}
+		public static StackLayout CreateScrollableFeedView(List<PostItemStackLayout> PostsContent, string placeholder, string scopeName){
 			searchBar = new SearchBar {
 				Placeholder = placeholder
 			};
@@ -44,12 +46,12 @@ namespace Secret_Files
 				}
 			};
 		}
-		public static StackLayout CreateFeed(List<PostItem> list){
+		public static StackLayout CreateFeed(List<PostItemStackLayout> list){
 			var listArr = list.ToArray (); 
 			var stack = new StackLayout {
 				Orientation = StackOrientation.Vertical,
 				BackgroundColor = Color.Silver,
-				Padding = new Thickness (0, 8, 0, 30),
+				Padding = new Thickness (0, 8, 0, 15),
 				Children = {
 					new StackLayout{
 						BackgroundColor = Color.White,

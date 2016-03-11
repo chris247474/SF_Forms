@@ -2,58 +2,62 @@
 
 using Xamarin.Forms;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Secret_Files
 {
 	public class Feed : ContentPage
 	{
-		protected List<PostItem> FeedList{ get; set;}
-		public Feed (List<PostItem> FeedList, string title)
+		protected List<PostItemStackLayout> FeedList{ get; set;}
+		public Feed (List<PostItemStackLayout> FeedList, string title)
 		{
 			
 			this.BackgroundColor = Color.White;
 			this.Title = title;
 
-			FeedList = new List<PostItem> {
-				new PostItem ("postsample.png", "post 4", 
+
+			/*FeedList = new List<PostItemStackLayout> {
+				new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
-				,new PostItem ("postsample.png", "post 4", 
+				,new PostItemStackLayout ("postsample.png", "post 4", 
 					"klah dfklash dfkladsh fklasdhfk lasdhfk ljashflka  hsdfklhasdfkl jhasdk lfha slkdfhaskldjfhalsasldk f haskldfh klasdfh  lkasjdfhlkasj fhlasjdfh lkasjdf")
 
-			};
-			Util.SubscribeForPostRequests (FeedList);
-			Content = Util.CreateScrollableFeedView (FeedList, "Search", title);
+			};*/
+			PopulateContent ();
+		}
+		public async void PopulateContent(){
+			Content = Util.CreateScrollableFeedView (Util.LoadFeedDataIntoFeedList(await App.DataDB.GetPostItemsAsync ()), "Search", this.Title);
 		}
 		public void refresh (){
-			this.Content = Util.CreateScrollableFeedView (FeedList, "Search", this.Title);
+			this.Content = Util.CreateScrollableFeedView (Util.LoadFeedDataIntoFeedList(App.DataDB.GetPostItemsAsync ().Result), "Search", this.Title);
 		}
 
 	}

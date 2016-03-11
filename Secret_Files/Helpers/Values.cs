@@ -7,6 +7,7 @@ namespace Secret_Files
 		public const string SHOUTSTRING = "Shout your secret to ";
 		public const string WONTKNOW = ". They'll never know";
 		public const string POSTREQUEST = "PostRequest";
+		public static string ApplicationURL = @"https://secretfiles.azurewebsites.net";
 	}
 }
 

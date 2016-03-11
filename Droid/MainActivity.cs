@@ -6,6 +6,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using Acr.UserDialogs;
 
 namespace Secret_Files.Droid
 {
@@ -16,11 +17,14 @@ namespace Secret_Files.Droid
 		protected override void OnCreate (Bundle bundle)
 		{
 			Xamarin.Insights.Initialize (global::Secret_Files.Droid.XamarinInsights.ApiKey, this);
+			Microsoft.WindowsAzure.MobileServices.CurrentPlatform.Init();
 			base.OnCreate (bundle);
 			global::Xamarin.Forms.Forms.Init (this, bundle);
 
+
+
 			//init acr userdialogs
-			//UserDialogs.Init(this);
+			UserDialogs.Init(this);
 
 			LoadApplication (new App ());
 		}

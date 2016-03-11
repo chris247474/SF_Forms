@@ -10,6 +10,7 @@ namespace Secret_Files
 		ScrollView scrollView;
 		ToolbarItem nvm, shout;
 		Editor textArea;
+		string postTitle;
 
 		public CreatePostPage (string title)
 		{
@@ -30,9 +31,9 @@ namespace Secret_Files
 			shout = new ToolbarItem{
 				Text = "Shout"
 			};
-			shout.Clicked += (object sender, EventArgs e) => {
+			shout.Clicked += async (object sender, EventArgs e) => {
 				//post to users page
-				Util.RequestPostToFeed(new PostItem("postsample.png", "user post test", textArea.Text));
+				await App.DataDB.SaveTaskAsync (new PostItem{Body = textArea.Text, Title = "test title"});
 				Navigation.PopAsync ();
 			};
 			this.ToolbarItems.Add (shout);

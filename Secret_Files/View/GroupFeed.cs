@@ -7,7 +7,7 @@ namespace Secret_Files
 {
 	public class GroupFeed : Feed
 	{
-		public GroupFeed (List<PostItem> PostsContent, string title):base(PostsContent, title){
+		public GroupFeed (List<PostItemStackLayout> PostsContent, string title):base(PostsContent, title){
 			
 		}
 	}
