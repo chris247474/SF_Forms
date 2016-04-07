@@ -12,81 +12,46 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices;
-
-#if OFFLINE_SYNC_ENABLED
-using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
-using Microsoft.WindowsAzure.MobileServices.Sync;
-#endif
+using Secret_Files.Helpers;
+using System.Net;
+using Acr.UserDialogs;
 
 namespace Secret_Files
 {
 	public partial class AzureDataService
 	{
-		static AzureDataService defaultInstance = new AzureDataService();
-		MobileServiceClient client;
+		public MobileServiceClient Client{ get; set;}
 
-		#if OFFLINE_SYNC_ENABLED
-		IMobileServiceSyncTable<PostItem> todoTable;
-		#else
 		IMobileServiceTable<PostItem> postsTable;
-		#endif
+		IMobileServiceTable<GroupItem> groupsTable;
+		IMobileServiceTable<AccountItem> accountsTable; 
+		IMobileServiceTable<CommentItem> commentTable;
+		IMobileServiceTable<Gateway> gateTable;
 
-		public AzureDataService()
+		public async Task Initialize()
 		{
-			this.client = new MobileServiceClient(
+			//Create our client
+			this.Client = new MobileServiceClient(
 				Values.ApplicationURL);
 
-			#if OFFLINE_SYNC_ENABLED
-			var store = new MobileServiceSQLiteStore("localstore.db");
-			store.DefineTable<PostItem>();
-
-			//Initializes the SyncContext using the default IMobileServiceSyncHandler.
-			this.client.SyncContext.InitializeAsync(store);
-
-			this.todoTable = client.GetSyncTable<PostItem>();
-			#else
-			this.postsTable = client.GetTable<PostItem>();
-			#endif
+			this.postsTable = Client.GetTable<PostItem>();
+			this.groupsTable = Client.GetTable<GroupItem> ();
+			this.accountsTable = Client.GetTable<AccountItem> ();
+			this.commentTable = Client.GetTable<CommentItem> ();
+			this.gateTable = Client.GetTable<Gateway> ();
 		}
-
-		public static AzureDataService DefaultManager
-		{
-			get
-			{
-				return defaultInstance;
-			}
-			private set
-			{
-				defaultInstance = value;
-			}
-		}
-
-		public MobileServiceClient CurrentClient
-		{
-			get { return client; }
-		}
-
 		public bool IsOfflineEnabled
 		{
 			get { return postsTable is Microsoft.WindowsAzure.MobileServices.Sync.IMobileServiceSyncTable<PostItem>; }
 		}
-
-		public async Task<List<PostItem>> GetPostItemsAsync(bool syncItems = false)
-		{
+		public async Task<List<Gateway>> GetGateway(){
 			try
 			{
-				#if OFFLINE_SYNC_ENABLED
-				if (syncItems)
-				{
-				await this.SyncAsync();
-				}
-				#endif
-				List<PostItem> items = await postsTable
-					.Where(PostItem => PostItem.Title != null)
+				List<Gateway> items = await gateTable
+					.Where(gate => gate.ID != null)
 					.ToListAsync();
 
 				return items;
-				//return new ObservableCollection<PostItem>(items);
 			}
 			catch (MobileServiceInvalidOperationException msioe)
 			{
@@ -94,67 +59,373 @@ namespace Secret_Files
 			}
 			catch (Exception e)
 			{
-				Debug.WriteLine(@"Sync error: {0}", e.Message);
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task CreatePass(Gateway item){
+			try{
+				if (item.ID == null)
+				{
+					await gateTable.InsertAsync(item);
+				}
+				else
+				{
+					await gateTable.UpdateAsync(item);
+				}
+			}catch(Exception e ){
+				Debug.WriteLine ("create pass error: "+e.Message);
+			}
+		}
+		public async Task<List<PostItem>> GetSinglePostByPostID(string postid, bool syncItems = false)
+		{
+			try
+			{
+				List<PostItem> items = await postsTable
+					.Where(PostItem => PostItem.ID == postid)
+					.ToListAsync();
+
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task<PostItem> GetSinglePostByPostTextTitleUserIDGroupID(string text, string title, string userID, string groupid, bool syncItems = false)
+		{
+			try
+			{
+				UserDialogs.Instance.ShowLoading ();
+				List<PostItem> items = await postsTable
+					.Where(PostItem => PostItem.Body == text).Where (post => post.Title == title).Where (post => post.UserId == userID).Where (post => post.GroupID == groupid)
+					.ToListAsync();
+				UserDialogs.Instance.HideLoading ();
+				return items.ElementAtOrDefault (0);
+				/*var itemArr = items.ToArray ();
+				for(int c = 0;c < itemArr.Length;c++){
+					if(string.Equals (itemArr[c].Body, text) && string.Equals (itemArr[c].Title, title) && string.Equals (itemArr[c].UserId, userID) && string.Equals (itemArr[c].GroupID, groupid)){
+						return itemArr[c];
+					}
+				}*/
+
+				return null;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task<List<PostItem>> GetPostItemsAsync(bool syncItems = false)
+		{
+			try
+			{
+				List<PostItem> items = await postsTable
+					.Where(PostItem => PostItem.Title != null)
+					.ToListAsync();
+
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task<List<PostItem>> GetPostItemsByUserIDAsync(string userId, bool syncItems = false)
+		{
+			try
+			{
+				List<PostItem> items = await postsTable
+					.Where(PostItem => PostItem.UserId == userId)
+					.ToListAsync();
+
+				items.Reverse ();
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task<List<CommentItem>> GetCommentsByPostAsync(string postID, bool syncItems = false)
+		{
+			try
+			{
+				List<CommentItem> items = await commentTable
+					.Where(Comment => Comment.PostID == postID)
+					.ToListAsync();
+
+			//	items.Reverse ();
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task<List<CommentItem>> GetCommentsByGroupIDAsync(string groupId, bool syncItems = false)
+		{
+			try
+			{
+				List<CommentItem> items = await commentTable
+					.Where(Comment => Comment.GroupID == groupId)
+					.ToListAsync();
+
+				//	items.Reverse ();
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task<List<AccountItem>> GetAccountsAsync(bool syncItems = false)
+		{
+			try
+			{
+				List<AccountItem> items = await accountsTable
+					.Where(x => x.ID != null)
+					.ToListAsync();
+
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
 			}
 			return null;
 		}
 
-		public async Task SaveTaskAsync(PostItem item)
+		public async Task SaveAccountTaskAsync(AccountItem item)
 		{
-			if (item.ID == null)
-			{
-				await postsTable.InsertAsync(item);
+			try{
+				if (item.ID == null)
+				{
+					await accountsTable.InsertAsync(item);
+				}
+				else
+				{
+					await accountsTable.UpdateAsync(item);
+				}
+			}catch(Exception e ){
+				Debug.WriteLine ("New account Save error: "+e.Message);
 			}
-			else
+		}
+
+		public async Task<String> CreateNewAccount(){
+			Debug.WriteLine ("Creating new account");
+			Random random = new Random ();
+			var randomusernamenumber = random.Next ();
+			var randomusername = randomusernamenumber.ToString ();
+
+			var user = new AccountItem{password = Values.DEFAULTPASSWORD, username = randomusername };
+			await SaveAccountTaskAsync (user);
+
+			return (await GetUserID(user, randomusername));
+		}
+		public async Task<String> GetUserID(AccountItem item, string randomusername){
+			try{
+				var accounts = (await GetAccountsAsync ()).ToArray ();
+				for(int i = 0;i < accounts.Length;i++){
+					if(string.Equals(randomusername, accounts[i].username)){
+						return accounts [i].ID;
+					}
+				}
+
+			}catch(WebException){
+				Debug.WriteLine ("UserDialog here, no net connection");//user dialog
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}
+			catch(TaskCanceledException){
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}
+			return string.Empty;
+		}
+		public async Task<AccountItem> GetUserByID(string id){
+			try{
+				List<AccountItem> accounts = (await GetAccountsAsync ()).Where (user => user.ID == id).ToList();
+				return accounts.FirstOrDefault ();
+
+			}catch(WebException){
+				Debug.WriteLine ("UserDialog here, no net connection");//user dialog
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}
+			catch(TaskCanceledException){
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}catch(Exception e){
+				Debug.WriteLine ("GetUserByID error: "+e.Message);
+			}
+			return null;
+		}
+		public async Task<List<PostItem>> GetPostItemsByGroupOrderByPopularAsync(string groupid, bool syncItems = false)
+		{
+			Debug.WriteLine ("In GetPostItemsByGroupAsync");
+			try
 			{
-				await postsTable.UpdateAsync(item);
+				List<PostItem> items = await postsTable
+					.Where(PostItem => PostItem.GroupID == groupid).OrderByDescending (PostItem => PostItem.reactionCount )
+					.ToListAsync();
+				
+				Debug.WriteLine ("Done w GetPostItemsByGroupAsync");
+				//items.Reverse ();
+				//items.OrderBy (PostItem => PostItem.reactionCount);
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch(WebException we){
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}
+			catch(TaskCanceledException){
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}public async Task<List<PostItem>> GetPostItemsByGroupOrderByRecentAsync(string groupid, bool syncItems = false)
+		{
+			Debug.WriteLine ("In GetPostItemsByGroupAsync");
+			try
+			{
+				List<PostItem> items = await postsTable
+					.Where(PostItem => PostItem.GroupID == groupid)//.OrderByDescending (PostItem => PostItem.reactionCount )
+					.ToListAsync();
+
+				Debug.WriteLine ("Done w GetPostItemsByGroupAsync");
+				items.Reverse ();
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch(WebException we){
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}
+			catch(TaskCanceledException){
+				//UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+
+		public async Task SavePostItemsTaskAsync(PostItem item)
+		{
+			try{
+				if (item.ID == null)
+				{
+					await postsTable.InsertAsync(item);
+				}
+				else
+				{
+					await postsTable.UpdateAsync(item);
+				}
+			}catch(Exception e){
+				Debug.WriteLine ("SavePostItemsTaskAsync error: "+e.Message);
 			}
 		}
 
-		#if OFFLINE_SYNC_ENABLED
-		public async Task SyncAsync()
+		public async Task<List<GroupItem>> GetGroupItemsAsync(bool syncItems = false)
 		{
-		ReadOnlyCollection<MobileServiceTableOperationError> syncErrors = null;
+			Debug.WriteLine ("GetGroupItemsAsync started");
+			try
+			{
+				List<GroupItem> items = await groupsTable
+					.Where(Item => Item.groupName != null)
+					.ToListAsync();
 
-		try
+				Debug.WriteLine ("GetGroupItemsAsync ending");
+				return items;
+			}
+			catch (MobileServiceInvalidOperationException msioe)
+			{
+				Debug.WriteLine(@"Invalid sync operation: {0}", msioe.Message);
+			}
+			catch(WebException){
+				Debug.WriteLine ("UserDialog here, no net connection");//user dialog
+				UserDialogs.Instance.InfoToast ("Your data connection is a bit slow right now");
+			}
+			catch(TaskCanceledException){
+			//	UserDialogs.Instance.WarnToast ("Your data connection is a bit slow right now", null, 2000);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(@"Sync error: {0} - {1}", e.ToString (), e.Message);
+			}
+			return null;
+		}
+		public async Task SaveGroupsItemsTaskAsync(GroupItem item)
 		{
-		await this.client.SyncContext.PushAsync();
-
-		await this.todoTable.PullAsync(
-		//The first parameter is a query name that is used internally by the client SDK to implement incremental sync.
-		//Use a different query name for each unique query in your program
-		"allPostItems",
-		this.todoTable.CreateQuery());
+			try{
+				if (item.ID == null)
+				{
+					await groupsTable.InsertAsync(item);
+				}
+				else
+				{
+					await groupsTable.UpdateAsync(item);
+				}
+			}catch(Exception e ){
+				Debug.WriteLine ("GroupItem Save error: "+e.Message);
+			}
 		}
-		catch (MobileServicePushFailedException exc)
+		public async Task SaveCommentItemsTaskAsync(CommentItem item)
 		{
-		if (exc.PushResult != null)
-		{
-		syncErrors = exc.PushResult.Errors;
+			try{
+				if (item.ID == null)
+				{
+					await commentTable.InsertAsync(item);
+				}
+				else
+				{
+					await commentTable.UpdateAsync(item);
+				}
+			}catch(Exception e ){
+				Debug.WriteLine ("CommentItem Save error: "+e.Message);
+			}
 		}
-		}
-
-		// Simple error/conflict handling. A real application would handle the various errors like network conditions,
-		// server conflicts and others via the IMobileServiceSyncHandler.
-		if (syncErrors != null)
-		{
-		foreach (var error in syncErrors)
-		{
-		if (error.OperationKind == MobileServiceTableOperationKind.Update && error.Result != null)
-		{
-		//Update failed, reverting to server's copy.
-		await error.CancelAndUpdateItemAsync(error.Result);
-		}
-		else
-		{
-		// Discard local change.
-		await error.CancelAndDiscardItemAsync();
-		}
-
-		Debug.WriteLine(@"Error executing sync operation. Item: {0} ({1}). Operation discarded.", error.TableName, error.Item["id"]);
-		}
-		}
-		}
-		#endif
 	}
 }

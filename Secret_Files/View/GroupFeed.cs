@@ -2,13 +2,150 @@
 
 using Xamarin.Forms;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Refractored.XamForms.PullToRefresh;
+using System.ComponentModel;
+using System.Threading;
 
 namespace Secret_Files
 {
-	public class GroupFeed : Feed
+	public class GroupFeed : ContentPage
 	{
-		public GroupFeed (List<PostItemStackLayout> PostsContent, string title):base(PostsContent, title){
+		public string groupid, groupname;
+		public PullToRefreshViewModel refreshHandler;
+		protected PullToRefreshLayout refreshView;
+		ToolbarItem TrendingTBI, NewestTBI, ShoutTBI;
+		public ToolbarItem Post;
+		public StackLayout feedPosts;
+		ScrollView ScrollFeed; 
+
+		public GroupFeed (string groupname, string groupid = null){
 			
+
+			MessagingCenter.Subscribe<PostItemStackLayout> (this, Values.NotBusy, (args) => { 
+				Debug.WriteLine ("setting isbusy false");
+				IsBusy = false;
+			});
+			MessagingCenter.Subscribe<PostItemStackLayout> (this, Values.Busy, (args) => { 
+				Debug.WriteLine ("setting isbusy true");
+				IsBusy = true;
+			});
+
+			ListenForRefresh ();
+
+			refreshHandler = new PullToRefreshViewModel (this);
+			BindingContext = refreshHandler;
+			this.groupid = groupid;
+			this.groupname = groupname;
+			this.BackgroundColor = Color.FromHex (Values.BACKGROUNDLIGHTSILVER);
+			this.Title = groupname;
+			PopulateContent ();
+		}
+		public void PopulateContent(){
+			InitTBI ();
+			var preloadStack = new StackLayout { 
+				Orientation = StackOrientation.Vertical,
+				Children = {
+					//Util.CreateSearchBar()
+				}
+			};
+			Content = preloadStack;
+
+			refreshHandler.ExecuteRefreshCommand();
+		}
+		void StartIntervalRefresh(){
+			Device.StartTimer(new TimeSpan(0,0,30), () => {
+				if(!((BindingContext as PullToRefreshViewModel).IsBusy) && !IsBusy){
+					refreshHandler.ExecuteRefreshCommand ();
+				}else{
+					Debug.WriteLine ("refresher is busy, dont refresh");
+				}
+				return true;
+			});
+		}
+
+		public StackLayout CreateScrollableFeedView(List<PostItemStackLayout> PostsContent, string placeholder, string scopeName, string groupid = null){
+			if (PostsContent != null && PostsContent.Count > 0) {
+				Debug.WriteLine ("Posts found");
+				feedPosts = Util.CreateFeed (PostsContent);
+				ScrollFeed = new ScrollView {
+					Content = feedPosts
+				};
+
+				refreshView = new PullToRefreshLayout {  
+					VerticalOptions = LayoutOptions.FillAndExpand, 
+					HorizontalOptions = LayoutOptions.FillAndExpand,  
+					Content = ScrollFeed, 
+					RefreshColor = Color.FromHex ("#3498db"),
+					IsPullToRefreshEnabled = true
+				};  
+				refreshView.SetBinding (PullToRefreshLayout.IsRefreshingProperty, new Xamarin.Forms.Binding(){Path="IsBusy", Mode = BindingMode.OneWay});
+				refreshView.SetBinding(PullToRefreshLayout.RefreshCommandProperty, new Xamarin.Forms.Binding(){Path="RefreshCommand"});
+
+				return new StackLayout { 
+					Orientation = StackOrientation.Vertical, 
+					Children = { refreshView }
+				};
+			} else {
+				Label NoPostsLabel = new Label{
+					Text = "Be the first to start this secret file!",
+					TextColor = Color.Silver,
+					FontSize = Device.GetNamedSize (NamedSize.Medium, typeof(Label)),
+					VerticalOptions = LayoutOptions.Center,
+					HorizontalOptions = LayoutOptions.Center
+				};
+				return new StackLayout{ 
+					Orientation = StackOrientation.Vertical, 
+					VerticalOptions = LayoutOptions.FillAndExpand, 
+					HorizontalOptions = LayoutOptions.FillAndExpand,  
+					Children = { 
+						//new ShoutBar ("postsample.png", scopeName, groupid),
+						NoPostsLabel
+					}
+				};
+			}
+		}
+
+		void InitTBI(){
+			TrendingTBI = new ToolbarItem ("Trending", Util.GetTrendingOrNewestIconPathname (), () => {
+				if(string.Equals (App.NewestOrTrending, Values.TRENDING)){
+					App.NewestOrTrending = Values.NEWEST;
+					TrendingTBI.Icon = Values.NEWESTICON;
+				}else if(string.Equals (App.NewestOrTrending, Values.NEWEST)){
+					App.NewestOrTrending = Values.TRENDING;
+					TrendingTBI.Icon = Values.TRENDINGICON;
+				}
+				refreshHandler.ExecuteRefreshCommand();
+			});
+			NewestTBI = new ToolbarItem ("Newest", "", () => {
+				App.NewestOrTrending = Values.NEWEST;
+				refreshHandler.ExecuteRefreshCommand();
+			});
+
+			ShoutTBI = new ToolbarItem ("Shout", "ic_create_white_24dp.png", () => {
+				Navigation.PushAsync (new CreatePostPage(refreshHandler, "Add a Secret to "+this.Title, groupname, groupid));
+			});
+			this.ToolbarItems.Add (ShoutTBI);
+			this.ToolbarItems.Add (TrendingTBI);
+		}
+		public void SearchGroups()
+		{
+		}
+		void ListenForRefresh(){
+			MessagingCenter.Subscribe<CreatePostPage> (this, Values.REFRESH, async (args) => { 
+				Debug.WriteLine ("REFRESH MESSAGE RECEIVED");
+				await this.refreshHandler.ExecuteRefreshCommand ();
+			});
+		}
+
+		protected override void OnAppearing(){
+			Debug.WriteLine ("Appearing");
+			App.NavPage.BarBackgroundColor = Color.FromHex (Values.GOOGLEBLUE);
+		}
+		protected override void OnDisappearing(){
+			Debug.WriteLine ("OnDisappearing");
+			App.NavPage.BarBackgroundColor = Color.FromHex (Values.PURPLE);
 		}
 	}
 }

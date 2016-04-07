@@ -3,22 +3,21 @@
 using Xamarin.Forms;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Secret_Files
 {
 	public class UserFeed : Feed
 	{
-		public UserFeed (List<PostItemStackLayout> PostsContent, string title):base(PostsContent, title)
+		public UserFeed (List<PostItem> PostsContent, string title)//:base(title)
 		{
-			MessagingCenter.Subscribe<UserFeed>(this, Values.POSTREQUEST, (args) =>{
-				try{
-					Debug.WriteLine("PostRequest Received");
-					//FeedList.Add (args as PostItem);
-					//refresh();
-				}catch(Exception e){
-					Debug.WriteLine ("Subscribe Error: "+e.Message);
-				}
+			MessagingCenter.Subscribe<CreatePostPage> (this, Values.REFRESH, async (args) => { 
+				Debug.WriteLine ("REFRESH MESSAGE RECEIVED");
+				await this.refresh (); 
 			});
+		}
+		public async Task refresh (){
+			//this.Content = Util.CreateScrollableFeedView (Util.LoadFeedDataIntoFeedList (await App.DataDB.GetPostItemsAsync ()), "Search", this.Title);
 		}
 	}
 }

@@ -6,11 +6,13 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using Refractored.XamForms.PullToRefresh.Droid;
+using ImageCircle.Forms.Plugin.Droid;
 using Acr.UserDialogs;
 
 namespace Secret_Files.Droid
 {
-	[Activity (Label = "SecretFiles.Droid", Icon = "@drawable/icon", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation, 
+	[Activity (Label = "Secret Files", Icon = "@drawable/icon", /*MainLauncher = true,*/ ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation, 
 		Theme = "@style/HideIcon")]
 	public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsApplicationActivity
 	{
@@ -18,10 +20,11 @@ namespace Secret_Files.Droid
 		{
 			Xamarin.Insights.Initialize (global::Secret_Files.Droid.XamarinInsights.ApiKey, this);
 			Microsoft.WindowsAzure.MobileServices.CurrentPlatform.Init();
+			PullToRefreshLayoutRenderer.Init ();
+			//Xamarin.Forms.Init();//platform specific init
+			ImageCircleRenderer.Init();
 			base.OnCreate (bundle);
 			global::Xamarin.Forms.Forms.Init (this, bundle);
-
-
 
 			//init acr userdialogs
 			UserDialogs.Init(this);

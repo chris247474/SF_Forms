@@ -9,14 +9,14 @@ namespace Secret_Files
 		Label ShoutLabel;
 		TapGestureRecognizer tapHandler;
 
-		public ShoutBar (string imgName, string shoutScopeName)
+		public ShoutBar (string imgName, string shoutScopeName, string groupid = null)
 		{
 			this.BackgroundColor = Color.White;
 			tapHandler = new TapGestureRecognizer{
 				NumberOfTapsRequired = 1
 			};
 			tapHandler.Tapped += (sender, e) => {
-				Navigation.PushAsync (new CreatePostPage("Confess/Shout/Whatever to "+shoutScopeName.ToLower ()));
+				//Navigation.PushAsync (new CreatePostPage("Add a Secret to "+shoutScopeName, groupid));
 			};
 
 			img = new Image{
@@ -26,15 +26,18 @@ namespace Secret_Files
 			ShoutLabel = new Label{ 
 				Text = Util.BuildShoutText(shoutScopeName),
 				TextColor = Color.Silver,
-				XAlign = TextAlignment.Start,
-				YAlign = TextAlignment.Center
+				HorizontalTextAlignment = TextAlignment.Start,
+				VerticalTextAlignment = TextAlignment.Center
 			};ShoutLabel.GestureRecognizers.Add (tapHandler);
 
-			Padding = new Thickness (30, 20, 20, 15);
+			Padding = new Thickness (30, 10, 20, 15);
 
-			this.Orientation = StackOrientation.Horizontal;
-			this.Children.Add (img);
-			this.Children.Add (ShoutLabel);
+			this.Orientation = StackOrientation.Vertical;
+			this.Children.Add (new StackLayout{
+				Orientation = StackOrientation.Horizontal,
+				Children = {img, ShoutLabel}
+			});
+			//this.Children.Add (Util.CreateSeparator (Color.Gray, 1));
 
 			return;
 		}

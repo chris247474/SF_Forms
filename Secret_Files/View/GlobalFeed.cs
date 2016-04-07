@@ -5,7 +5,7 @@ namespace Secret_Files
 {
 	public class GlobalFeed:Feed
 	{
-		public GlobalFeed (List<PostItemStackLayout> PostsContent, string title):base(PostsContent, title)
+		public GlobalFeed (List<PostItem> PostsContent, string title)//:base(title)
 		{
 		}
 	}

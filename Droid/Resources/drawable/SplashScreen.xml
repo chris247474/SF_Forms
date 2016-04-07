@@ -1,5 +1,14 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-  android:src="@drawable/icon"
-  android:gravity="center"
-  android:layout_gravity="center"/>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item>
+        <shape android:shape="rectangle" >
+            <solid android:color="#1C4D76" />
+        </shape>
+    </item>
+	<item>
+		<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+		  android:src="@drawable/icon"
+		  android:gravity="center"
+		  android:layout_gravity="center"/>
+	</item>
+</layer-list>
