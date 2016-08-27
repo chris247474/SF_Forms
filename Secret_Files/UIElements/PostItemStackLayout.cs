@@ -13,7 +13,7 @@ namespace Secret_Files
 		Image postImage;
 		CommentItem comment;
 		int stackCtr = 0;
-		Label TextBody, PostTitle, CommentLabel, ReactionLabel;
+		Label TextBody, PostTitle, CommentLabel, LikeLabel;
 		public Entry CommentEntry;
 		Entry commentEntry;
 		int postedCount;
@@ -48,7 +48,7 @@ namespace Secret_Files
 				VerticalOptions = LayoutOptions.Center,
 				FontSize = (Device.GetNamedSize (NamedSize.Small, typeof(Label)) * 0.8)
 			};
-			ReactionLabel = new Label{
+			LikeLabel = new Label{
 				Text = "Like",
 				HorizontalTextAlignment = TextAlignment.Center,
 				VerticalTextAlignment = TextAlignment.Center,
@@ -65,13 +65,13 @@ namespace Secret_Files
 			};
 			LikeGesture.Tapped += (sender, e) => {
 				Util.UpdatePostReactionCount (post);
-				if(string.Equals (ReactionLabel.Text, Values.LIKE)){
-					ReactionLabel.Text = Values.DISLIKE;
+				if(string.Equals (LikeLabel.Text, Values.LIKE)){
+					LikeLabel.Text = Values.DISLIKE;
 				}else{
-					ReactionLabel.Text = Values.LIKE;
+					LikeLabel.Text = Values.LIKE;
 				}
 			};
-			ReactionLabel.GestureRecognizers.Add (LikeGesture);
+			LikeLabel.GestureRecognizers.Add (LikeGesture);
 
 			var CommentLayout = new StackLayout{
 				Orientation = StackOrientation.Horizontal,
@@ -79,7 +79,7 @@ namespace Secret_Files
 				VerticalOptions = LayoutOptions.Center,
 				Padding = new Thickness(7.5, 0, 0, 7.5),
 				Children = { 
-					ReactionLabel, CommentLabel
+					LikeLabel, CommentLabel
 				}
 			};
 

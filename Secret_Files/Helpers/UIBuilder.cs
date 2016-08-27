@@ -3,11 +3,47 @@ using Xamarin.Forms;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Secret_Files.Helpers;
+using FAB.Forms;
 
 namespace Secret_Files
 {
 	public static class UIBuilder
 	{
+		public static StackLayout AddFloatingActionButtonToStackLayout(StackLayout stack, string icon, Command FabTapped, Color NormalColor, Color PressedColor){
+			var layout = new RelativeLayout ();
+			layout.Children.Add(
+				stack,
+				xConstraint: Constraint.Constant(0),
+				yConstraint: Constraint.Constant(0),
+				widthConstraint: Constraint.RelativeToParent(parent => parent.Width),
+				heightConstraint: Constraint.RelativeToParent(parent => parent.Height)
+			);
+
+			return new StackLayout{
+				Children = {
+					AddFloatingActionButtonToRelativeLayout(layout, icon, FabTapped, NormalColor, PressedColor)
+				}
+			};
+		}
+		public static RelativeLayout AddFloatingActionButtonToRelativeLayout(RelativeLayout layout, string icon, Command FabTapped, Color NormalColor, Color PressedColor){
+			var normalFab = new FAB.Forms.FloatingActionButton();
+			normalFab.Source = icon;
+			normalFab.Size = FabSize.Normal;
+			normalFab.HasShadow = true;
+			normalFab.NormalColor = NormalColor;
+			normalFab.Opacity = 0.9;
+			normalFab.PressedColor = PressedColor;
+
+			layout.Children.Add(
+				normalFab,
+				xConstraint: Constraint.RelativeToParent((parent) =>  { return (parent.Width - normalFab.Width) - 20; }),
+				yConstraint: Constraint.RelativeToParent((parent) =>  { return (parent.Height - normalFab.Height) - 40; })
+			);
+			normalFab.SizeChanged += (sender, args) => { layout.ForceLayout(); };
+			normalFab.SetBinding (FloatingActionButton.CommandProperty, new Binding(){Source = FabTapped});
+
+			return layout;
+		}
 		public static void ReplaceTransparentCommentOrAdd(StackLayout container, CommentItem message, PostItemStackLayout parentPost, PostItem post){
 			View[] view = new View[container.Children.Count];
 			container.Children.CopyTo (view, 0);
@@ -18,16 +54,27 @@ namespace Secret_Files
 					//Debug.WriteLine ("View {0} is {1}", c, view[c].GetType ());
 					if(view[c].GetType () == typeof(CommentStackLayout)){
 						Debug.WriteLine ("Checking commenter {0} at index {1}", (view [c] as CommentStackLayout).UserCommenter, c);
-						if(string.Equals ((view[c] as CommentStackLayout).Text, message.CommentText) && string.Equals ((view[c] as CommentStackLayout).UserCommenter, message.UserCommentName) && (view[c] as CommentStackLayout).Opacity == 0.3){
+
+						//if pending comment exists (current user is the commenter), replace the pending comment - else just add the comment at the bottom of the comment stack
+						if(string.Equals ((view[c] as CommentStackLayout).Text, message.CommentText) && (view[c] as CommentStackLayout).Opacity == 0.3 && string.Equals ((view[c] as CommentStackLayout).UserCommenter, Settings.Username)){
+
 							Debug.WriteLine ("user has a pending comment at index {0}, solidifying it", c);
 							container.Children.RemoveAt (c);
 							container.Children.Insert (c, new CommentStackLayout (parentPost, post, Settings.ProfilePic, Settings.Username, message.CommentText));
+							c = view.Length +1;//exit loop to prevent duplicate comments - dont know why it repeats so much
 						}
+					}
+
+					if(c == view.Length - 1){
+						Debug.WriteLine ("received comment by {0} hasnt been added", message.UserCommentName);
+						container.Children.Add (new CommentStackLayout(parentPost, post, message.UserImage, message.UserCommentName, message.CommentText));
+						//c = view.Length +1;//exit loop to prevent duplicate comments - dont know why it repeats so much
 					}
 				}catch(Exception){
 					Debug.WriteLine ("not a comment");
 				}
 			}
+
 		}
 		public static StackLayout ComposeInfoPageStack(){
 			return new StackLayout{

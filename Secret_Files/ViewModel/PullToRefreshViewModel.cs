@@ -44,6 +44,8 @@ namespace Secret_Files
 			if (IsBusy) return; 
 
 			IsBusy = true;
+			if (feed != null)
+				feed.IsBusy = true;
 
 			Debug.WriteLine ("Rebuilding UI post list");
 			if (string.Equals (App.NewestOrTrending, Values.TRENDING)) {
@@ -58,18 +60,11 @@ namespace Secret_Files
 
 			IsBusy = false; 
 			Debug.WriteLine ("ExecuteRefreshCommand done");
-
-			DisplayToUserTrendingOrNewest ();
+			if (feed != null)
+				feed.IsBusy = false;
 
 			//start refresh interval for posts
 			App.ChatClient.ListenForNewPosts (this, page.feedPosts, page.groupid);
-		}
-		void DisplayToUserTrendingOrNewest(){
-			if (string.Equals (App.NewestOrTrending, Values.TRENDING)) {
-				UserDialogs.Instance.InfoToast ("Trending Secrets", null, 1000);
-			} else {
-				UserDialogs.Instance.InfoToast ("Newest Secrets", null, 1000);
-			}
 		}
 
 		#region INotifyPropertyChanged implementation

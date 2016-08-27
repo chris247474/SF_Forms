@@ -22,7 +22,7 @@ namespace Secret_Files
 		public Client(string platform)
 		{
 			_platform = platform;
-			_connection = new HubConnection("http://signalrsampeserver.azurewebsites.net/");
+			_connection = new HubConnection("http://chrisdavetvsignalr.azurewebsites.net/");
 			_proxy = _connection.CreateHubProxy("ChatHub");
 		}
 

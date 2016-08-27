@@ -7,23 +7,23 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Plugin.Media;
 using Acr.UserDialogs;
+using System.Collections.Generic;
 
 namespace Secret_Files
 {
 	public class App : Application
 	{
+		//public static OfflineSyncAzureService DataDB = new OfflineSyncAzureService ();//need to find good offline sync error handling algo
 		public static AzureDataService DataDB = new AzureDataService ();
 		public static string NewestOrTrending = Values.NEWEST;
 		public static ContentPage groupfeed;
 		public static CameraService Camera = new CameraService ();
 		public static Client ChatClient;
 		public static NavigationPage NavPage;
+		public static List<GroupItem> GroupsContent = new List<GroupItem>();
 
 		public App ()
 		{
-			for(int c = 0;c < 20;c++){
-				Debug.WriteLine ("random {0}: {1}",c,Util.GenerateRandomUsername ());
-			}
 			PrepareAppData ();
 			//CheckIfAppAllowedThenLoadMainPage ();
 			NavPage = new NavigationPage (new MasterStartPage ()) {
@@ -51,6 +51,7 @@ namespace Secret_Files
 
 				//Debug.WriteLine ("Sending message through signalr");
 				//ChatClient.Send("Test Message");
+				ChatClient.SendToWeb (Settings.Username, "Client connected");
 			}catch(Exception e){
 				Debug.WriteLine ("Could not connect to SignalR server: {0} - {1}", e.InnerException, e.Message);
 				try{
@@ -92,8 +93,8 @@ namespace Secret_Files
 			ConnectChatClientToServer ();//move to GroupFeed?
 			await App.DataDB.Initialize();
 			await CheckIfLoggedInThenContinue ();
-
 			//await SetupKillSwitch (Values.UNIVPASS);
+
 		}
 		async Task SetupKillSwitch(string NewPass){
 			Values.UNIVPASS = NewPass;

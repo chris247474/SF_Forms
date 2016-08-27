@@ -72,12 +72,13 @@ namespace Secret_Files
 			CreateGroup = new ToolbarItem ("Add", "ic_group_add_white_24dp.png", async () => {
 				await Navigation.PushAsync (new CreateNewGroupPage());
 			});
-			this.ToolbarItems.Add (CreateGroup);
+			//this.ToolbarItems.Add (CreateGroup); 
 
 			//setup list of groups that allows for pull-to-refresh functionality
-			listView = new ListView{
-				//ItemsSource = await App.DataDB.GetGroupItemsAsync ()
-			};
+			listView = new ListView();
+			if(App.GroupsContent != null){
+				listView.ItemsSource = App.GroupsContent;
+			}
 			listView.IsPullToRefreshEnabled = true;
 			listView.RefreshCommand = RefreshCommand;
 			listView.SetBinding (ListView.IsRefreshingProperty, new Xamarin.Forms.Binding(){Path="IsBusy", Mode = BindingMode.OneWay});
@@ -102,7 +103,7 @@ namespace Secret_Files
 			};
 
 			searchBar = Util.CreateSearchBar (this);
-			Content = new StackLayout { 
+			var stack = new StackLayout { 
 				Orientation = StackOrientation.Vertical,
 				Padding = new Thickness (0, 0, 0, 15),
 				Children = {
@@ -111,6 +112,10 @@ namespace Secret_Files
 					listView
 				}
 			};
+
+			Content = UIBuilder.AddFloatingActionButtonToStackLayout (stack, "ic_add_white_24dp.png", new Command(async () => {
+				await Navigation.PushAsync (new CreateNewGroupPage());
+			}), Color.FromHex (Values.GOOGLEBLUE), Color.FromHex (Values.PURPLE));
 
 			ExecuteRefreshCommand ();
 		}

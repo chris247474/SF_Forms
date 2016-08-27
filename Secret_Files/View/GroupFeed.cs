@@ -21,8 +21,6 @@ namespace Secret_Files
 		ScrollView ScrollFeed; 
 
 		public GroupFeed (string groupname, string groupid = null){
-			
-
 			MessagingCenter.Subscribe<PostItemStackLayout> (this, Values.NotBusy, (args) => { 
 				Debug.WriteLine ("setting isbusy false");
 				IsBusy = false;
@@ -42,7 +40,7 @@ namespace Secret_Files
 			this.Title = groupname;
 			PopulateContent ();
 		}
-		public void PopulateContent(){
+		public async void PopulateContent(){
 			InitTBI ();
 			var preloadStack = new StackLayout { 
 				Orientation = StackOrientation.Vertical,
@@ -52,7 +50,7 @@ namespace Secret_Files
 			};
 			Content = preloadStack;
 
-			refreshHandler.ExecuteRefreshCommand();
+			refreshHandler.ExecuteRefreshCommand(this);
 		}
 		void StartIntervalRefresh(){
 			Device.StartTimer(new TimeSpan(0,0,30), () => {
@@ -66,6 +64,8 @@ namespace Secret_Files
 		}
 
 		public StackLayout CreateScrollableFeedView(List<PostItemStackLayout> PostsContent, string placeholder, string scopeName, string groupid = null){
+			StackLayout stack = new StackLayout ();
+
 			if (PostsContent != null && PostsContent.Count > 0) {
 				Debug.WriteLine ("Posts found");
 				feedPosts = Util.CreateFeed (PostsContent);
@@ -83,28 +83,40 @@ namespace Secret_Files
 				refreshView.SetBinding (PullToRefreshLayout.IsRefreshingProperty, new Xamarin.Forms.Binding(){Path="IsBusy", Mode = BindingMode.OneWay});
 				refreshView.SetBinding(PullToRefreshLayout.RefreshCommandProperty, new Xamarin.Forms.Binding(){Path="RefreshCommand"});
 
-				return new StackLayout { 
+				stack = new StackLayout { 
 					Orientation = StackOrientation.Vertical, 
 					Children = { refreshView }
 				};
+
+
 			} else {
 				Label NoPostsLabel = new Label{
 					Text = "Be the first to start this secret file!",
 					TextColor = Color.Silver,
 					FontSize = Device.GetNamedSize (NamedSize.Medium, typeof(Label)),
-					VerticalOptions = LayoutOptions.Center,
-					HorizontalOptions = LayoutOptions.Center
+					VerticalOptions = LayoutOptions.Fill,
+					HorizontalOptions = LayoutOptions.Fill
 				};
-				return new StackLayout{ 
+				refreshView = new PullToRefreshLayout {  
+					VerticalOptions = LayoutOptions.Center, 
+					HorizontalOptions = LayoutOptions.Center,  
+					Content = NoPostsLabel, 
+					RefreshColor = Color.FromHex ("#3498db"),
+					IsPullToRefreshEnabled = true
+				};  
+				stack = new StackLayout{ 
 					Orientation = StackOrientation.Vertical, 
 					VerticalOptions = LayoutOptions.FillAndExpand, 
 					HorizontalOptions = LayoutOptions.FillAndExpand,  
-					Children = { 
-						//new ShoutBar ("postsample.png", scopeName, groupid),
-						NoPostsLabel
+					Children = {
+						refreshView
 					}
 				};
 			}
+
+			return UIBuilder.AddFloatingActionButtonToStackLayout (stack, "ic_add_white_24dp.png", new Command(async () => {
+				Navigation.PushAsync (new CreatePostPage(refreshHandler, "Add a Secret to "+this.Title, groupname, groupid));
+			}), Color.FromHex (Values.PURPLE), Color.FromHex (Values.GOOGLEBLUE));
 		}
 
 		void InitTBI(){
@@ -117,6 +129,7 @@ namespace Secret_Files
 					TrendingTBI.Icon = Values.TRENDINGICON;
 				}
 				refreshHandler.ExecuteRefreshCommand();
+				Util.DisplayToUserTrendingOrNewest ();
 			});
 			NewestTBI = new ToolbarItem ("Newest", "", () => {
 				App.NewestOrTrending = Values.NEWEST;
@@ -126,7 +139,7 @@ namespace Secret_Files
 			ShoutTBI = new ToolbarItem ("Shout", "ic_create_white_24dp.png", () => {
 				Navigation.PushAsync (new CreatePostPage(refreshHandler, "Add a Secret to "+this.Title, groupname, groupid));
 			});
-			this.ToolbarItems.Add (ShoutTBI);
+			//this.ToolbarItems.Add (ShoutTBI);
 			this.ToolbarItems.Add (TrendingTBI);
 		}
 		public void SearchGroups()

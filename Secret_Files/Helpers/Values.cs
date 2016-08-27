@@ -20,7 +20,7 @@ namespace Secret_Files
 
 		public const string FOCUSONCOMMENTENTRY = "focuscomment";
 
-		public static string ApplicationURL = @"https://secretfiles.azurewebsites.net";
+		public static string ApplicationURL = @"https://chrisdavetv.azurewebsites.net";
 
 		public const string REFRESH = "refresh";
 

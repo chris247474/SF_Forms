@@ -14,7 +14,13 @@ namespace Secret_Files
 		static SearchBar searchBar;
 		static ScrollView ScrollFeed;
 
-
+		public static void DisplayToUserTrendingOrNewest(){
+			if (string.Equals (App.NewestOrTrending, Values.TRENDING)) {
+				UserDialogs.Instance.InfoToast ("Trending Secrets", null, 1000);
+			} else {
+				UserDialogs.Instance.InfoToast ("Newest Secrets", null, 1000);
+			}
+		}
 		public static string GetTrendingOrNewestIconPathname(){
 			if (string.Equals (App.NewestOrTrending, Values.TRENDING)) {
 				return "ic_whatshot_yellow_600_24dp.png";
